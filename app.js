@@ -3,6 +3,27 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // --- SAFE LOCAL STORAGE WRAPPER (Prevents crashes in file:// URIs or private browsing) ---
+  const SafeStorage = {
+    fallback: {},
+    getItem(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        console.warn(`localStorage.getItem failed for key "${key}":`, e);
+        return this.fallback[key] || null;
+      }
+    },
+    setItem(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch (e) {
+        console.warn(`localStorage.setItem failed for key "${key}":`, e);
+        this.fallback[key] = String(value);
+      }
+    }
+  };
+
   // --- APPLICATION STATE ---
   const state = {
     leavening: 'yeast', // 'yeast' or 'sourdough'
@@ -74,6 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- DOM ELEMENT REFERENCES ---
   const DOM = {
     themeSelector: document.getElementById('theme-selector'),
+    themeSelect: document.getElementById('theme-select'),
+    themeActiveIcon: document.getElementById('theme-active-icon'),
     leaveningTabs: document.getElementById('leavening-tabs'),
     yeastInputs: document.getElementById('yeast-inputs'),
     sourdoughInputs: document.getElementById('sourdough-inputs'),
@@ -133,21 +156,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- THEME MANAGEMENT ---
   function initTheme() {
-    const savedTheme = localStorage.getItem('pizza-calculator-theme') || 'system';
+    const savedTheme = SafeStorage.getItem('pizza-calculator-theme') || 'system';
     setTheme(savedTheme);
   }
 
   function setTheme(theme) {
     const htmlEl = document.documentElement;
     
-    // Update active class on header buttons
-    DOM.themeSelector.querySelectorAll('.theme-btn').forEach(btn => {
-      if (btn.dataset.theme === theme) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
+    // Update select element value
+    if (DOM.themeSelect) DOM.themeSelect.value = theme;
+
+    // Update dynamic theme SVG icon
+    const iconPaths = {
+      light: 'M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-12.37a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zm-12.37 12.37a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z',
+      dark: 'M12.3 22h-.1c-5.5 0-10-4.5-10-10 0-4.8 3.5-8.9 8.2-9.8.6-.1 1.2.3 1.3.9.1.6-.2 1.2-.8 1.4-3.4 1-5.7 4.1-5.7 7.6 0 4.4 3.6 8 8 8 3.5 0 6.6-2.3 7.6-5.7.2-.6.8-.9 1.4-.8.6.1 1 .7.9 1.3-.9 4.7-5 8.2-9.8 8.2z',
+      system: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-2V4a8 8 0 1 1 0 16z'
+    };
+    if (DOM.themeActiveIcon && iconPaths[theme]) {
+      DOM.themeActiveIcon.innerHTML = `<path d="${iconPaths[theme]}"/>`;
+    }
 
     // Remove old classes
     htmlEl.classList.remove('theme-light', 'theme-dark');
@@ -160,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // System: follows media query defaults. No explicit class needed
     }
 
-    localStorage.setItem('pizza-calculator-theme', theme);
+    SafeStorage.setItem('pizza-calculator-theme', theme);
   }
 
   // --- CORE CONVERSIONS & MATHS ---
@@ -316,6 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }
       
+      const totalMultiplier = 1 + input.hydration/100 + input.salt/100 + input.oil/100 + input.sugar/100 + input.yeastPct/100;
       rowsHtml += `
         <tr class="total-row">
           <td>Total Yield</td>
@@ -381,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }
 
-      const totalMultiplier = 1 + hydrationFactor + saltFactor + oilFactor + sugarFactor;
+      const totalMultiplier = 1 + input.hydration/100 + input.salt/100 + input.oil/100 + input.sugar/100;
       rowsHtml += `
         <tr class="total-row">
           <td>Total Yield</td>
@@ -573,6 +601,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const preset = state.presets[presetKey];
     if (!preset) return;
 
+    const currentPizzas = state.inputs.pizzas;
+
     state.leavening = preset.leavening;
     
     // Sync state inputs
@@ -581,6 +611,8 @@ document.addEventListener('DOMContentLoaded', () => {
         state.inputs[key] = preset[key];
       }
     });
+
+    state.inputs.pizzas = currentPizzas;
 
     // Update yeast/sourdough UI panels and tab buttons
     DOM.leaveningTabs.querySelectorAll('.tab-btn').forEach(btn => {
@@ -607,6 +639,12 @@ document.addEventListener('DOMContentLoaded', () => {
         card.classList.remove('active');
       }
     });
+
+    // Deselect saved tag highlights
+    DOM.savedRecipesContainer.querySelectorAll('.saved-tag').forEach(tag => tag.classList.remove('active'));
+
+    // Save last used recipe
+    SafeStorage.setItem('pizza-last-recipe', JSON.stringify({ type: 'preset', key: presetKey }));
 
     // Update Slider / Input controls to match loaded preset
     syncControlsToState();
@@ -660,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- SAVE & LOAD CUSTOM RECIPES (LOCAL STORAGE) ---
   function initCustomRecipes() {
-    const raw = localStorage.getItem('pizza-custom-recipes');
+    const raw = SafeStorage.getItem('pizza-custom-recipes');
     if (raw) {
       try {
         state.customRecipes = JSON.parse(raw);
@@ -687,9 +725,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     state.customRecipes.push(recipe);
-    localStorage.setItem('pizza-custom-recipes', JSON.stringify(state.customRecipes));
+    SafeStorage.setItem('pizza-custom-recipes', JSON.stringify(state.customRecipes));
     DOM.customRecipeName.value = '';
     renderSavedRecipes();
+    loadCustomRecipe(recipe.id);
   }
 
   function renderSavedRecipes() {
@@ -730,8 +769,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const recipe = state.customRecipes.find(r => r.id === id);
     if (!recipe) return;
 
+    const currentPizzas = state.inputs.pizzas;
+
     state.leavening = recipe.leavening;
     state.inputs = { ...recipe.inputs };
+
+    state.inputs.pizzas = currentPizzas;
 
     // Update leavening tabs
     DOM.leaveningTabs.querySelectorAll('.tab-btn').forEach(btn => {
@@ -753,14 +796,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // Deselect preset highlights
     DOM.presetsContainer.querySelectorAll('.preset-card').forEach(card => card.classList.remove('active'));
 
+    // Update active tag highlight
+    DOM.savedRecipesContainer.querySelectorAll('.saved-tag').forEach(tag => {
+      if (parseInt(tag.dataset.recipeId) === id) {
+        tag.classList.add('active');
+      } else {
+        tag.classList.remove('active');
+      }
+    });
+
+    // Save last used recipe
+    SafeStorage.setItem('pizza-last-recipe', JSON.stringify({ type: 'custom', id: id }));
+
     syncControlsToState();
     calculateRecipe();
   }
 
   function deleteCustomRecipe(id) {
     state.customRecipes = state.customRecipes.filter(r => r.id !== id);
-    localStorage.setItem('pizza-custom-recipes', JSON.stringify(state.customRecipes));
+    SafeStorage.setItem('pizza-custom-recipes', JSON.stringify(state.customRecipes));
     renderSavedRecipes();
+
+    // Check if the deleted one was the last used
+    const raw = SafeStorage.getItem('pizza-last-recipe');
+    if (raw) {
+      try {
+        const last = JSON.parse(raw);
+        if (last.type === 'custom' && last.id === id) {
+          SafeStorage.setItem('pizza-last-recipe', JSON.stringify({ type: 'preset', key: 'neapolitan' }));
+          loadPreset('neapolitan');
+        }
+      } catch (e) {}
+    }
   }
 
   // --- CONTROLLER BINDINGS & SYNCS ---
@@ -868,12 +935,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Theme Toggler Buttons
-  DOM.themeSelector.querySelectorAll('.theme-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      setTheme(btn.dataset.theme);
+  // Theme Dropdown Change Event
+  if (DOM.themeSelect) {
+    DOM.themeSelect.addEventListener('change', (e) => {
+      setTheme(e.target.value);
     });
-  });
+  }
 
   // Save Custom Recipe Button
   DOM.saveRecipeBtn.addEventListener('click', saveCurrentAsCustom);
@@ -889,9 +956,33 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.resultsSection.scrollIntoView({ behavior: 'smooth' });
   });
 
+  function loadLastUsedRecipe() {
+    const raw = SafeStorage.getItem('pizza-last-recipe');
+    if (raw) {
+      try {
+        const last = JSON.parse(raw);
+        if (last.type === 'preset') {
+          loadPreset(last.key);
+          return;
+        } else if (last.type === 'custom') {
+          // Find if custom recipe still exists
+          const exists = state.customRecipes.some(r => r.id === last.id);
+          if (exists) {
+            loadCustomRecipe(last.id);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to load last used recipe:", e);
+      }
+    }
+    // Fallback to neapolitan if none found or custom recipe deleted
+    loadPreset('neapolitan');
+  }
+
   // --- INITIALIZATION LAUNCH ---
   initTheme();
   initCustomRecipes();
-  // Pre-load default Neapolitan preset on launch
-  loadPreset('neapolitan');
+  // Load last used recipe or default to neapolitan
+  loadLastUsedRecipe();
 });
