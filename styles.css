@@ -937,3 +937,42 @@ tr:last-child td {
   opacity: 1;
   transform: translateY(-4px);
 }
+
+/* ==========================================
+   11. Footer Styles
+   ========================================== */
+.app-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-color);
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.github-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.github-link svg {
+  fill: var(--text-secondary);
+  transition: var(--transition);
+}
+
+.github-link:hover {
+  color: var(--accent-terracotta);
+}
+
+.github-link:hover svg {
+  fill: var(--accent-terracotta);
+}
