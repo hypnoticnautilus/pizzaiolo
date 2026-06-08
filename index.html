@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Pizzaiolo Pro - The ultimate pizza dough and toppings calculator. Easily calculate flour, water, yeast, salt, sugar, sourdough starter, and sauce/cheese weights.">
+  <title>Pizzaiolo Pro - Dough & Toppings Calculator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- HEADER -->
+    <header>
+      <div class="logo" id="app-logo">
+        <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <path d="M468.9 33.11c-19.12-16.12-47.38-16.12-66.5 0L24.6 352c-15.12 12.87-19.12 34.38-9.25 51.5 24 41.5 73.12 67.25 125.4 67.25l25.6-2.12c52.25-4.25 101.5-30.87 131.9-72.25l161.9-299.1c9.9-18 5.6-43.5-9.3-56.12zm-359.9 386c-22.12 0-41.5-10.87-53.75-27.62l300-253.2c6.25 5.25 9.75 12.75 9.75 20.62 0 4-1 8.12-2.87 11.62L200.25 391.2c-20.12 27.5-52.62 45.25-87.38 48.12l-3.9.12z"/>
+          <circle cx="160" cy="280" r="16"/>
+          <circle cx="240" cy="200" r="20"/>
+          <circle cx="300" cy="280" r="14"/>
+        </svg>
+        <h1>Pizzaiolo <span>Pro</span></h1>
+      </div>
+      
+      <div class="header-controls">
+        <div class="theme-selector" id="theme-selector">
+          <button class="theme-btn" data-theme="light">Light</button>
+          <button class="theme-btn" data-theme="dark">Dark</button>
+          <button class="theme-btn active" data-theme="system">System</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-grid">
+      
+      <!-- COLUMN 1: CONTROLS & INPUTS -->
+      <section class="left-column">
+        
+        <!-- PRESETS AND SAVED RECIPES -->
+        <div class="card" id="preset-card">
+          <h2>Select Pizza Preset</h2>
+          <div class="preset-grid" id="presets-container">
+            <!-- Dynamic Presets Loaded here -->
+            <div class="preset-card active" data-preset="neapolitan">
+              <div class="preset-title">Neapolitan</div>
+              <div class="preset-desc">Classic 62% hydration, Wood-Fired style</div>
+            </div>
+            <div class="preset-card" data-preset="newyork">
+              <div class="preset-title">New York</div>
+              <div class="preset-desc">65% hydration, Crispy home-oven bake</div>
+            </div>
+            <div class="preset-card" data-preset="detroit">
+              <div class="preset-title">Detroit Style</div>
+              <div class="preset-desc">70% hydration, Thick pan pizza</div>
+            </div>
+            <div class="preset-card" data-preset="sourdough-neo">
+              <div class="preset-title">Sourdough Neo</div>
+              <div class="preset-desc">62% hydration, Natural leavening</div>
+            </div>
+          </div>
+          
+          <div class="recipe-save-form">
+            <input type="text" id="custom-recipe-name" placeholder="My Custom Pizza Formula...">
+            <button class="btn-primary" id="save-recipe-btn">Save Current</button>
+          </div>
+          <div class="saved-recipes-list" id="saved-recipes-container">
+            <!-- Saved recipes tags will dynamically display here -->
+          </div>
+        </div>
+
+        <!-- RECIPE CONTROLS -->
+        <div class="card">
+          <h2>Recipe Controls</h2>
+          
+          <!-- Leavening Selector -->
+          <div class="tab-selector" id="leavening-tabs">
+            <button class="tab-btn active" data-leavening="yeast">
+              Commercial Yeast
+            </button>
+            <button class="tab-btn" data-leavening="sourdough">
+              Sourdough Starter
+            </button>
+          </div>
+          
+          <!-- Dough Quantity -->
+          <div class="form-group">
+            <div class="label-container">
+              <label for="num-pizzas">Number of Pizzas</label>
+              <div class="input-val-container">
+                <div class="number-input-wrap">
+                  <input type="number" id="num-pizzas-num" min="1" max="100" value="4">
+                </div>
+              </div>
+            </div>
+            <div class="slider-container">
+              <input type="range" id="num-pizzas" min="1" max="24" step="1" value="4">
+            </div>
+          </div>
+          
+          <!-- Dough Ball Weight -->
+          <div class="form-group">
+            <div class="label-container">
+              <label for="ball-weight">Dough Ball Weight</label>
+              <div class="input-val-container">
+                <div class="number-input-wrap">
+                  <input type="number" id="ball-weight-num" min="50" max="1000" value="250">
+                  <span class="input-suffix">g</span>
+                </div>
+              </div>
+            </div>
+            <div class="slider-container">
+              <input type="range" id="ball-weight" min="100" max="500" step="5" value="250">
+            </div>
+          </div>
+          
+          <!-- Hydration -->
+          <div class="form-group">
+            <div class="label-container">
+              <label for="hydration">Hydration</label>
+              <div class="input-val-container">
+                <div class="number-input-wrap">
+                  <input type="number" id="hydration-num" min="40" max="100" value="62">
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+            </div>
+            <div class="slider-container">
+              <input type="range" id="hydration" min="50" max="85" step="1" value="62">
+            </div>
+          </div>
+          
+          <!-- Salt -->
+          <div class="form-group">
+            <div class="label-container">
+              <label for="salt">Salt</label>
+              <div class="input-val-container">
+                <div class="number-input-wrap">
+                  <input type="number" id="salt-num" min="0" max="10" step="0.1" value="2.5">
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+            </div>
+            <div class="slider-container">
+              <input type="range" id="salt" min="1.0" max="5.0" step="0.1" value="2.5">
+            </div>
+          </div>
+
+          <!-- Olive Oil -->
+          <div class="form-group">
+            <div class="label-container">
+              <label for="oil">Olive Oil</label>
+              <div class="input-val-container">
+                <div class="number-input-wrap">
+                  <input type="number" id="oil-num" min="0" max="15" step="0.1" value="0">
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+            </div>
+            <div class="slider-container">
+              <input type="range" id="oil" min="0.0" max="8.0" step="0.5" value="0">
+            </div>
+          </div>
+
+          <!-- Sugar -->
+          <div class="form-group">
+            <div class="label-container">
+              <label for="sugar">Sugar</label>
+              <div class="input-val-container">
+                <div class="number-input-wrap">
+                  <input type="number" id="sugar-num" min="0" max="10" step="0.1" value="0">
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+            </div>
+            <div class="slider-container">
+              <input type="range" id="sugar" min="0.0" max="5.0" step="0.5" value="0">
+            </div>
+          </div>
+
+          <!-- Yeast Type & Percent (Commercial Yeast Only) -->
+          <div id="yeast-inputs">
+            <div class="form-group">
+              <label for="yeast-type">Yeast Type</label>
+              <select id="yeast-type">
+                <option value="instant" selected>Instant Dry Yeast (IDY)</option>
+                <option value="active-dry">Active Dry Yeast (ADY)</option>
+                <option value="fresh">Fresh Yeast (CY)</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <div class="label-container">
+                <label for="yeast-pct">Yeast Percentage</label>
+                <div class="input-val-container">
+                  <div class="number-input-wrap">
+                    <input type="number" id="yeast-pct-num" min="0.01" max="5.0" step="0.01" value="0.2">
+                    <span class="input-suffix">%</span>
+                  </div>
+                </div>
+              </div>
+              <div class="slider-container">
+                <input type="range" id="yeast-pct" min="0.05" max="1.5" step="0.05" value="0.2">
+              </div>
+            </div>
+          </div>
+
+          <!-- Sourdough Settings (Sourdough Only) -->
+          <div id="sourdough-inputs" class="sub-panel" style="display: none;">
+            <div class="form-group">
+              <div class="label-container">
+                <label for="starter-pct">Sourdough Starter %</label>
+                <div class="input-val-container">
+                  <div class="number-input-wrap">
+                    <input type="number" id="starter-pct-num" min="1" max="50" step="1" value="15">
+                    <span class="input-suffix">%</span>
+                  </div>
+                </div>
+              </div>
+              <div class="slider-container">
+                <input type="range" id="starter-pct" min="5" max="30" step="1" value="15">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="label-container">
+                <label for="starter-hydration">Starter Hydration</label>
+                <div class="input-val-container">
+                  <div class="number-input-wrap">
+                    <input type="number" id="starter-hydration-num" min="40" max="200" step="1" value="100">
+                    <span class="input-suffix">%</span>
+                  </div>
+                </div>
+              </div>
+              <div class="slider-container">
+                <input type="range" id="starter-hydration" min="50" max="150" step="5" value="100">
+              </div>
+            </div>
+          </div>
+
+          <!-- Toppings & Sauce Collapsible Section -->
+          <div class="collapsible-trigger" id="toppings-trigger">
+            <h3>Toppings & Sauce Settings</h3>
+            <svg class="chevron-icon" viewBox="0 0 24 24" width="24" height="24">
+              <path d="M7 10l5 5 5-5z"/>
+            </svg>
+          </div>
+          
+          <div class="collapsible-content" id="toppings-content">
+            <div class="form-group">
+              <label for="sauce-level">Pizza Sauce Amount</label>
+              <select id="sauce-level">
+                <option value="none">None (White Pizza)</option>
+                <option value="light">Light (~60g per pizza)</option>
+                <option value="standard" selected>Standard (~80g per pizza)</option>
+                <option value="extra">Extra (~100g per pizza)</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="cheese-level">Mozzarella Cheese Amount</label>
+              <select id="cheese-level">
+                <option value="none">None (Marinara Style)</option>
+                <option value="light">Light (~70g per pizza)</option>
+                <option value="standard" selected>Standard (~90g per pizza)</option>
+                <option value="extra">Extra (~120g per pizza)</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- COLUMN 2: INGREDIENTS & DOUGH SPECS -->
+      <section class="right-column" id="results-section">
+        
+        <div class="card">
+          <div class="output-header">
+            <h2>Recipe Weights</h2>
+            <div class="unit-selector" id="unit-selector">
+              <button class="unit-btn active" data-unit="g">Grams</button>
+              <button class="unit-btn" data-unit="oz">Ounces</button>
+            </div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-box">
+              <div class="stat-label">Total Dough Weight</div>
+              <div class="stat-val" id="total-dough-weight">1000g</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Dough Ball Size</div>
+              <div class="stat-val" id="individual-ball-weight">250g</div>
+            </div>
+          </div>
+
+          <!-- Ingredients Table -->
+          <table>
+            <thead>
+              <tr>
+                <th>Ingredient</th>
+                <th style="text-align: right;">Weight</th>
+                <th style="text-align: right;">%</th>
+              </tr>
+            </thead>
+            <tbody id="ingredients-table-body">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+
+          <!-- Sauce and Toppings Section -->
+          <table>
+            <thead>
+              <tr>
+                <th>Topping / Prep</th>
+                <th style="text-align: right;">Total Weight</th>
+                <th style="text-align: right;">Per Pizza</th>
+              </tr>
+            </thead>
+            <tbody id="toppings-table-body">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- EXPECTED BAKE RESULT SPEC -->
+        <div class="card">
+          <h2>Expected Dough Yield</h2>
+          <p id="dough-specs-summary" style="font-size: 14px; margin-bottom: 8px; font-weight: 500;"></p>
+          <div id="dough-ratio-detail" style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;"></div>
+        </div>
+
+      </section>
+    </main>
+
+    <!-- BELOW THE FOLD: INTERACTIVE INSTRUCTIONS -->
+    <section class="instructions-section" style="margin-top: 8px;">
+      <div class="card">
+        <h2>Interactive Preparation Guide</h2>
+        <div class="instructions-list" id="instructions-container">
+          <!-- Populated dynamically based on Yeast or Sourdough selection -->
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- MOBILE FLOATING STICKY SUMMARY -->
+  <div class="mobile-sticky-bar" id="mobile-summary-bar">
+    <div class="sticky-details">
+      <div class="sticky-total-weight" id="mobile-weight-display">1000g</div>
+      <div class="sticky-desc" id="mobile-desc-display">4 Pizzas × 250g</div>
+    </div>
+    <button class="btn-primary" id="scroll-to-recipe-btn">View Recipe</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
