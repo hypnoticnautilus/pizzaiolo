@@ -125,12 +125,14 @@ header {
   gap: 10px;
 }
 
-.logo svg {
-  width: 36px;
-  height: 36px;
-  fill: var(--accent-terracotta);
+.logo-icon {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  flex-shrink: 0;
   filter: drop-shadow(0 2px 8px var(--accent-amber-glow));
 }
+
 
 .logo h1 {
   font-family: var(--font-family-serif);
@@ -149,37 +151,44 @@ header {
   gap: 16px;
 }
 
-/* Segmented Theme Controls */
-.theme-selector {
+/* Theme Dropdown styling */
+.theme-dropdown-wrap {
   display: flex;
+  align-items: center;
+  gap: 8px;
   background-color: var(--bg-input);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  padding: 2px;
-  gap: 2px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 4px 10px 4px 8px;
+  transition: var(--transition);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
-.theme-btn {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: calc(var(--radius-sm) - 2px);
-  cursor: pointer;
+.theme-dropdown-wrap:hover {
+  border-color: var(--accent-terracotta);
+}
+
+.theme-icon {
+  fill: var(--text-secondary);
   transition: var(--transition);
 }
 
-.theme-btn:hover {
-  color: var(--text-primary);
+.theme-dropdown-wrap:hover .theme-icon {
+  fill: var(--accent-terracotta);
 }
 
-.theme-btn.active {
-  background-color: var(--accent-terracotta);
-  color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(211, 84, 0, 0.3);
+.theme-select-dropdown {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  width: auto !important;
+  outline: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
 }
 
 /* ==========================================
@@ -265,8 +274,8 @@ label {
 }
 
 .number-input-wrap input {
-  width: 70px;
-  padding: 6px 12px 6px 8px;
+  width: 85px;
+  padding: 6px 24px 6px 8px;
   border: 1px solid var(--border-color);
   background-color: var(--bg-input);
   color: var(--text-primary);
@@ -535,6 +544,21 @@ table {
   border-collapse: collapse;
   margin-bottom: 24px;
   text-align: left;
+  table-layout: fixed;
+}
+
+th:first-child, td:first-child {
+  width: 55%;
+}
+
+th:nth-child(2), td:nth-child(2) {
+  width: 25%;
+  text-align: right;
+}
+
+th:nth-child(3), td:nth-child(3) {
+  width: 20%;
+  text-align: right;
 }
 
 th {
@@ -586,12 +610,11 @@ tr:last-child td {
 .total-row {
   font-weight: 700;
   color: var(--accent-terracotta);
-  background-color: var(--accent-amber-glow);
 }
 
 .total-row td {
-  padding: 16px 12px;
-  border-radius: var(--radius-sm);
+  padding: 16px 0;
+  border-top: 2px solid var(--accent-terracotta);
   border-bottom: none;
 }
 
@@ -785,6 +808,12 @@ tr:last-child td {
   border-color: var(--accent-terracotta);
 }
 
+.saved-tag.active {
+  border-color: var(--accent-terracotta);
+  background-color: var(--accent-amber-glow);
+  box-shadow: 0 2px 8px var(--accent-amber-glow);
+}
+
 .saved-tag-title {
   max-width: 120px;
   overflow: hidden;
@@ -851,4 +880,60 @@ tr:last-child td {
   .mobile-sticky-bar {
     display: flex;
   }
+}
+
+/* ==========================================
+   10. Tooltips & Info Modals
+   ========================================== */
+.tooltip-trigger {
+  position: relative;
+  cursor: help;
+}
+
+.info-tooltip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  font-size: 10px;
+  margin-left: 4px;
+  transition: var(--transition);
+}
+
+.tooltip-trigger:hover .info-tooltip {
+  background-color: var(--accent-terracotta);
+  color: #FFFFFF;
+}
+
+.tooltip-trigger::before {
+  content: "Baker's percentages represent ratios relative to the total flour weight (which is always 100%). Other ingredients are ratios of the flour weight, which is why the total sum is greater than 100%.";
+  position: absolute;
+  bottom: 125%;
+  right: 0;
+  width: 240px;
+  padding: 10px 12px;
+  background-color: var(--bg-card-solid);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: var(--transition);
+  z-index: 100;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.tooltip-trigger:hover::before {
+  opacity: 1;
+  transform: translateY(-4px);
 }
