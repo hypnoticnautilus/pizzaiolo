@@ -201,6 +201,16 @@ header {
   align-items: start;
 }
 
+.left-column {
+  position: relative;
+  z-index: 2;
+}
+
+.right-column {
+  position: relative;
+  z-index: 1;
+}
+
 @media (max-width: 900px) {
   .main-grid {
     grid-template-columns: 1fr;
@@ -937,6 +947,46 @@ tr:last-child td {
   opacity: 1;
   transform: translateY(-4px);
 }
+
+.tooltip-trigger-yeast {
+  position: relative;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.tooltip-trigger-yeast:hover .info-tooltip {
+  background-color: var(--accent-terracotta);
+  color: #FFFFFF;
+}
+
+.tooltip-trigger-yeast::before {
+  content: "Selecting the correct yeast type is important because their activity levels and required weights differ. Click here to view King Arthur's conversion guide.";
+  position: absolute;
+  bottom: 130%;
+  left: -10px;
+  width: 240px;
+  padding: 8px 10px;
+  background-color: var(--bg-card-solid);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: var(--transition);
+  z-index: 100;
+}
+
+.tooltip-trigger-yeast:hover::before {
+  opacity: 1;
+  transform: translateY(-4px);
+}
+
 
 /* ==========================================
    11. Footer Styles
