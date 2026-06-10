@@ -734,9 +734,50 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPreset('neapolitan');
   }
 
+  function initVersion() {
+    fetch('version.json')
+      .then(response => {
+        if (!response.ok) throw new Error('Not found');
+        return response.json();
+      })
+      .then(data => {
+        if (data && data.commit) {
+          const footer = document.querySelector('.app-footer');
+          if (footer) {
+            const separator = document.createElement('span');
+            separator.className = 'footer-separator';
+            separator.textContent = '•';
+            
+            const commitLink = document.createElement('a');
+            commitLink.className = 'commit-badge';
+            commitLink.href = `https://github.com/hypnoticnautilus/pizzaiolo/commit/${data.commit}`;
+            commitLink.target = '_blank';
+            commitLink.rel = 'noopener noreferrer';
+            commitLink.innerHTML = `
+              <svg class="git-branch-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;">
+                <line x1="6" y1="3" x2="6" y2="15"></line>
+                <circle cx="18" cy="6" r="3"></circle>
+                <circle cx="6" cy="6" r="3"></circle>
+                <circle cx="6" cy="18" r="3"></circle>
+                <path d="M18 9a9 9 0 0 1-9 9"></path>
+              </svg>
+              <span>${data.commit}</span>
+            `;
+            
+            footer.appendChild(separator);
+            footer.appendChild(commitLink);
+          }
+        }
+      })
+      .catch(() => {
+        // Silently ignore if version.json is not present (e.g. in local dev before deployment)
+      });
+  }
+
   // --- INITIALIZATION LAUNCH ---
   initTheme();
   initCustomRecipes();
   // Load last used recipe or default to neapolitan
   loadLastUsedRecipe();
+  initVersion();
 });
