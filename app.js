@@ -121,8 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
     individualBallWeight: document.getElementById('individual-ball-weight'),
     ingredientsTableBody: document.getElementById('ingredients-table-body'),
     toppingsTableBody: document.getElementById('toppings-table-body'),
-    doughSpecsSummary: document.getElementById('dough-specs-summary'),
-    doughRatioDetail: document.getElementById('dough-ratio-detail'),
     
     // Prep Guide
     instructionsContainer: document.getElementById('instructions-container'),
@@ -342,18 +340,6 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     DOM.toppingsTableBody.innerHTML = toppingsHtml;
-
-    // --- EXPECTED YIELD TEXT ---
-    const summaryText = `${input.pizzas} × ${CONV.format(input.ballWeight, unit)} dough balls. `;
-    const detailsText = `
-      This yeast recipe uses <strong>${input.hydration}% Hydration</strong>, which is highly responsive and versatile. 
-      ${input.oil > 0 ? `Olive oil (${input.oil}%) adds crumb tenderness and color. ` : ''}
-      ${input.sugar > 0 ? `Sugar (${input.sugar}%) speeds yeast activity and helps oven browning. ` : ''}
-      Suitable for cooking in a conventional oven at 500-550°F (using a pizza stone/steel) or outdoor pizza ovens.
-    `;
-
-    DOM.doughSpecsSummary.innerHTML = summaryText;
-    DOM.doughRatioDetail.innerHTML = detailsText;
 
     // --- GENERATE PREPARATION STEPS ---
     generateInstructions(totalSauce, totalCheese, saucePerPizza, cheesePerPizza);
