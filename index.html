@@ -55,10 +55,6 @@
               <div class="preset-title">Detroit Style</div>
               <div class="preset-desc">70% hydration, Thick pan pizza</div>
             </div>
-            <div class="preset-card" data-preset="sourdough-neo">
-              <div class="preset-title">Sourdough Neo</div>
-              <div class="preset-desc">62% hydration, Natural leavening</div>
-            </div>
           </div>
           
           <div class="recipe-save-form">
@@ -73,16 +69,6 @@
         <!-- RECIPE CONTROLS -->
         <div class="card">
           <h2>Recipe Controls</h2>
-          
-          <!-- Leavening Selector -->
-          <div class="tab-selector" id="leavening-tabs">
-            <button class="tab-btn active" data-leavening="yeast">
-              Commercial Yeast
-            </button>
-            <button class="tab-btn" data-leavening="sourdough">
-              Sourdough Starter
-            </button>
-          </div>
           
           <!-- Dough Quantity -->
           <div class="form-group">
@@ -202,39 +188,6 @@
               </div>
               <div class="slider-container">
                 <input type="range" id="yeast-pct" min="0.05" max="1.5" step="0.05" value="0.2">
-              </div>
-            </div>
-          </div>
-
-          <!-- Sourdough Settings (Sourdough Only) -->
-          <div id="sourdough-inputs" class="sub-panel" style="display: none;">
-            <div class="form-group">
-              <div class="label-container">
-                <label for="starter-pct">Sourdough Starter %</label>
-                <div class="input-val-container">
-                  <div class="number-input-wrap">
-                    <input type="number" id="starter-pct-num" min="1" max="50" step="1" value="15">
-                    <span class="input-suffix">%</span>
-                  </div>
-                </div>
-              </div>
-              <div class="slider-container">
-                <input type="range" id="starter-pct" min="5" max="30" step="1" value="15">
-              </div>
-            </div>
-
-            <div class="form-group">
-              <div class="label-container">
-                <label for="starter-hydration">Starter Hydration</label>
-                <div class="input-val-container">
-                  <div class="number-input-wrap">
-                    <input type="number" id="starter-hydration-num" min="40" max="200" step="1" value="100">
-                    <span class="input-suffix">%</span>
-                  </div>
-                </div>
-              </div>
-              <div class="slider-container">
-                <input type="range" id="starter-hydration" min="50" max="150" step="5" value="100">
               </div>
             </div>
           </div>

@@ -24,28 +24,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // --- DEFAULT INPUT VALUES ---
+  const DEFAULT_INPUTS = {
+    pizzas: 4,
+    ballWeight: 250,
+    hydration: 62,
+    salt: 2.5,
+    oil: 0,
+    sugar: 0,
+    yeastType: 'instant',
+    yeastPct: 0.2,
+    sauceLevel: 'standard',
+    cheeseLevel: 'standard'
+  };
+
   // --- APPLICATION STATE ---
   const state = {
-    leavening: 'yeast', // 'yeast' or 'sourdough'
     unit: 'g',          // 'g' or 'oz'
-    inputs: {
-      pizzas: 4,
-      ballWeight: 250,
-      hydration: 62,
-      salt: 2.5,
-      oil: 0,
-      sugar: 0,
-      yeastType: 'instant',
-      yeastPct: 0.2,
-      starterPct: 15,
-      starterHydration: 100,
-      sauceLevel: 'standard',
-      cheeseLevel: 'standard'
-    },
+    inputs: { ...DEFAULT_INPUTS },
     // Default system presets
     presets: {
       neapolitan: {
-        leavening: 'yeast',
         pizzas: 4,
         ballWeight: 250,
         hydration: 62,
@@ -56,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
         yeastPct: 0.2
       },
       newyork: {
-        leavening: 'yeast',
         pizzas: 4,
         ballWeight: 300,
         hydration: 65,
@@ -67,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
         yeastPct: 0.3
       },
       detroit: {
-        leavening: 'yeast',
         pizzas: 2,
         ballWeight: 400,
         hydration: 70,
@@ -76,17 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
         sugar: 1,
         yeastType: 'instant',
         yeastPct: 0.5
-      },
-      'sourdough-neo': {
-        leavening: 'sourdough',
-        pizzas: 4,
-        ballWeight: 250,
-        hydration: 62,
-        salt: 2.8,
-        oil: 0,
-        sugar: 0,
-        starterPct: 15,
-        starterHydration: 100
       }
     },
     customRecipes: []
@@ -97,9 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     themeSelector: document.getElementById('theme-selector'),
     themeSelect: document.getElementById('theme-select'),
     themeActiveIcon: document.getElementById('theme-active-icon'),
-    leaveningTabs: document.getElementById('leavening-tabs'),
     yeastInputs: document.getElementById('yeast-inputs'),
-    sourdoughInputs: document.getElementById('sourdough-inputs'),
     
     // Sliders & Numbers
     numPizzas: document.getElementById('num-pizzas'),
@@ -117,10 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
     yeastType: document.getElementById('yeast-type'),
     yeastPct: document.getElementById('yeast-pct'),
     yeastPctNum: document.getElementById('yeast-pct-num'),
-    starterPct: document.getElementById('starter-pct'),
-    starterPctNum: document.getElementById('starter-pct-num'),
-    starterHydration: document.getElementById('starter-hydration'),
-    starterHydrationNum: document.getElementById('starter-hydration-num'),
     
     // Toppings
     toppingsTrigger: document.getElementById('toppings-trigger'),
@@ -212,70 +192,25 @@ document.addEventListener('DOMContentLoaded', () => {
   function calculateRecipe() {
     const input = state.inputs;
     const unit = state.unit;
-    const leavening = state.leavening;
 
     const totalWeight = input.pizzas * input.ballWeight;
 
-    let flour = 0;
-    let water = 0;
-    let salt = 0;
-    let oil = 0;
-    let sugar = 0;
-    let yeast = 0;
-    
-    // Sourdough specific
-    let starter = 0;
-    let starterFlour = 0;
-    let starterWater = 0;
-    let addedFlour = 0;
-    let addedWater = 0;
+    // Base multipliers relative to flour (100%)
+    const saltFactor = input.salt / 100;
+    const hydrationFactor = input.hydration / 100;
+    const oilFactor = input.oil / 100;
+    const sugarFactor = input.sugar / 100;
+    const yeastFactor = input.yeastPct / 100;
 
-    if (leavening === 'yeast') {
-      // Base multipliers relative to flour (100%)
-      const saltFactor = input.salt / 100;
-      const hydrationFactor = input.hydration / 100;
-      const oilFactor = input.oil / 100;
-      const sugarFactor = input.sugar / 100;
-      const yeastFactor = input.yeastPct / 100;
+    const totalMultiplier = 1 + hydrationFactor + saltFactor + oilFactor + sugarFactor + yeastFactor;
 
-      const totalMultiplier = 1 + hydrationFactor + saltFactor + oilFactor + sugarFactor + yeastFactor;
-
-      // Flour is the 100% basis
-      flour = totalWeight / totalMultiplier;
-      water = flour * hydrationFactor;
-      salt = flour * saltFactor;
-      oil = flour * oilFactor;
-      sugar = flour * sugarFactor;
-      yeast = flour * yeastFactor;
-    } else {
-      // Sourdough mode: Total flour is the 100% basis.
-      // Sourdough starter contributes to flour and water.
-      const saltFactor = input.salt / 100;
-      const hydrationFactor = input.hydration / 100;
-      const oilFactor = input.oil / 100;
-      const sugarFactor = input.sugar / 100;
-      const starterFactor = input.starterPct / 100;
-      
-      // Multiplier without yeast factor since starter content is split into flour/water
-      const totalMultiplier = 1 + hydrationFactor + saltFactor + oilFactor + sugarFactor;
-
-      const totalFlour = totalWeight / totalMultiplier;
-      const totalWater = totalFlour * hydrationFactor;
-      
-      salt = totalFlour * saltFactor;
-      oil = totalFlour * oilFactor;
-      sugar = totalFlour * sugarFactor;
-      starter = totalFlour * starterFactor;
-
-      // Sourdough Starter Flour & Water calculations
-      const starterHydrationFactor = input.starterHydration / 100;
-      starterFlour = starter / (1 + starterHydrationFactor);
-      starterWater = starter - starterFlour;
-
-      // Deduct starter flour and water from dough flour/water
-      addedFlour = totalFlour - starterFlour;
-      addedWater = totalWater - starterWater;
-    }
+    // Flour is the 100% basis
+    const flour = totalWeight / totalMultiplier;
+    const water = flour * hydrationFactor;
+    const salt = flour * saltFactor;
+    const oil = flour * oilFactor;
+    const sugar = flour * sugarFactor;
+    const yeast = flour * yeastFactor;
 
     // --- RENDER DOUGH RESULTS ---
     DOM.totalDoughWeight.textContent = CONV.format(totalWeight, unit);
@@ -287,137 +222,68 @@ document.addEventListener('DOMContentLoaded', () => {
     // Build Ingredient rows
     let rowsHtml = '';
     
-    if (leavening === 'yeast') {
+    rowsHtml += `
+      <tr>
+        <td class="td-name">Flour (Tip: Tipo 00 or Bread Flour)</td>
+        <td class="td-val">${CONV.format(flour, unit)}</td>
+        <td class="td-pct">100%</td>
+      </tr>
+      <tr>
+        <td class="td-name">Water</td>
+        <td class="td-val">${CONV.format(water, unit)}</td>
+        <td class="td-pct">${input.hydration}%</td>
+      </tr>
+    `;
+
+    // Yeast formatting helper
+    const yeastNames = {
+      'instant': 'Instant Dry Yeast (IDY)',
+      'active-dry': 'Active Dry Yeast (ADY)',
+      'fresh': 'Fresh Yeast (CY)'
+    };
+    rowsHtml += `
+      <tr>
+        <td class="td-name">Yeast (${yeastNames[input.yeastType]})</td>
+        <td class="td-val">${CONV.formatYeast(yeast, unit)}</td>
+        <td class="td-pct">${input.yeastPct}%</td>
+      </tr>
+    `;
+
+    rowsHtml += `
+      <tr>
+        <td class="td-name">Salt</td>
+        <td class="td-val">${CONV.format(salt, unit)}</td>
+        <td class="td-pct">${input.salt}%</td>
+      </tr>
+    `;
+
+    if (oil > 0) {
       rowsHtml += `
         <tr>
-          <td class="td-name">Flour (Tip: Tipo 00 or Bread Flour)</td>
-          <td class="td-val">${CONV.format(flour, unit)}</td>
-          <td class="td-pct">100%</td>
-        </tr>
-        <tr>
-          <td class="td-name">Water</td>
-          <td class="td-val">${CONV.format(water, unit)}</td>
-          <td class="td-pct">${input.hydration}%</td>
-        </tr>
-      `;
-
-      // Yeast formatting helper
-      const yeastNames = {
-        'instant': 'Instant Dry Yeast (IDY)',
-        'active-dry': 'Active Dry Yeast (ADY)',
-        'fresh': 'Fresh Yeast (CY)'
-      };
-      rowsHtml += `
-        <tr>
-          <td class="td-name">Yeast (${yeastNames[input.yeastType]})</td>
-          <td class="td-val">${CONV.formatYeast(yeast, unit)}</td>
-          <td class="td-pct">${input.yeastPct}%</td>
-        </tr>
-      `;
-
-      rowsHtml += `
-        <tr>
-          <td class="td-name">Salt</td>
-          <td class="td-val">${CONV.format(salt, unit)}</td>
-          <td class="td-pct">${input.salt}%</td>
-        </tr>
-      `;
-
-      if (oil > 0) {
-        rowsHtml += `
-          <tr>
-            <td class="td-name">Olive Oil</td>
-            <td class="td-val">${CONV.format(oil, unit)}</td>
-            <td class="td-pct">${input.oil}%</td>
-          </tr>
-        `;
-      }
-
-      if (sugar > 0) {
-        rowsHtml += `
-          <tr>
-            <td class="td-name">Sugar</td>
-            <td class="td-val">${CONV.format(sugar, unit)}</td>
-            <td class="td-pct">${input.sugar}%</td>
-          </tr>
-        `;
-      }
-      
-      const totalMultiplier = 1 + input.hydration/100 + input.salt/100 + input.oil/100 + input.sugar/100 + input.yeastPct/100;
-      rowsHtml += `
-        <tr class="total-row">
-          <td>Total Yield</td>
-          <td class="td-val">${CONV.format(totalWeight, unit)}</td>
-          <td class="td-pct">${Math.round(totalMultiplier * 100)}%</td>
-        </tr>
-      `;
-    } else {
-      // Sourdough table
-      rowsHtml += `
-        <tr class="table-divider"><td colspan="3">Starter Content</td></tr>
-        <tr>
-          <td class="td-name">Sourdough Starter (Active)</td>
-          <td class="td-val">${CONV.format(starter, unit)}</td>
-          <td class="td-pct">${input.starterPct}%</td>
-        </tr>
-        <tr style="font-size: 13px; color: var(--text-secondary);">
-          <td class="td-name" style="padding-left: 20px;">↳ Starter Flour (${(starterFlour/totalWeight*100).toFixed(1)}% of dough)</td>
-          <td class="td-val">${CONV.format(starterFlour, unit)}</td>
-          <td class="td-pct">-</td>
-        </tr>
-        <tr style="font-size: 13px; color: var(--text-secondary);">
-          <td class="td-name" style="padding-left: 20px;">↳ Starter Water (${(starterWater/totalWeight*100).toFixed(1)}% of dough)</td>
-          <td class="td-val">${CONV.format(starterWater, unit)}</td>
-          <td class="td-pct">-</td>
-        </tr>
-        
-        <tr class="table-divider"><td colspan="3">Added Ingredients (To Mix)</td></tr>
-        <tr>
-          <td class="td-name">Flour (to add)</td>
-          <td class="td-val">${CONV.format(addedFlour, unit)}</td>
-          <td class="td-pct">${((addedFlour/(totalFlour))*100).toFixed(1)}%</td>
-        </tr>
-        <tr>
-          <td class="td-name">Water (to add)</td>
-          <td class="td-val">${CONV.format(addedWater, unit)}</td>
-          <td class="td-pct">${((addedWater/(totalFlour))*100).toFixed(1)}%</td>
-        </tr>
-        <tr>
-          <td class="td-name">Salt</td>
-          <td class="td-val">${CONV.format(salt, unit)}</td>
-          <td class="td-pct">${input.salt}%</td>
-        </tr>
-      `;
-
-      if (oil > 0) {
-        rowsHtml += `
-          <tr>
-            <td class="td-name">Olive Oil</td>
-            <td class="td-val">${CONV.format(oil, unit)}</td>
-            <td class="td-pct">${input.oil}%</td>
-          </tr>
-        `;
-      }
-
-      if (sugar > 0) {
-        rowsHtml += `
-          <tr>
-            <td class="td-name">Sugar</td>
-            <td class="td-val">${CONV.format(sugar, unit)}</td>
-            <td class="td-pct">${input.sugar}%</td>
-          </tr>
-        `;
-      }
-
-      const totalMultiplier = 1 + input.hydration/100 + input.salt/100 + input.oil/100 + input.sugar/100;
-      rowsHtml += `
-        <tr class="total-row">
-          <td>Total Yield</td>
-          <td class="td-val">${CONV.format(totalWeight, unit)}</td>
-          <td class="td-pct">${Math.round(totalMultiplier * 100)}%</td>
+          <td class="td-name">Olive Oil</td>
+          <td class="td-val">${CONV.format(oil, unit)}</td>
+          <td class="td-pct">${input.oil}%</td>
         </tr>
       `;
     }
+
+    if (sugar > 0) {
+      rowsHtml += `
+        <tr>
+          <td class="td-name">Sugar</td>
+          <td class="td-val">${CONV.format(sugar, unit)}</td>
+          <td class="td-pct">${input.sugar}%</td>
+        </tr>
+      `;
+    }
+    
+    rowsHtml += `
+      <tr class="total-row">
+        <td>Total Yield</td>
+        <td class="td-val">${CONV.format(totalWeight, unit)}</td>
+        <td class="td-pct">${Math.round(totalMultiplier * 100)}%</td>
+      </tr>
+    `;
 
     DOM.ingredientsTableBody.innerHTML = rowsHtml;
 
@@ -478,23 +344,13 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.toppingsTableBody.innerHTML = toppingsHtml;
 
     // --- EXPECTED YIELD TEXT ---
-    let summaryText = `${input.pizzas} × ${CONV.format(input.ballWeight, unit)} dough balls. `;
-    let detailsText = '';
-
-    if (leavening === 'yeast') {
-      detailsText = `
-        This yeast recipe uses <strong>${input.hydration}% Hydration</strong>, which is highly responsive and versatile. 
-        ${input.oil > 0 ? `Olive oil (${input.oil}%) adds crumb tenderness and color. ` : ''}
-        ${input.sugar > 0 ? `Sugar (${input.sugar}%) speeds yeast activity and helps oven browning. ` : ''}
-        Suitable for cooking in a conventional oven at 500-550°F (using a pizza stone/steel) or outdoor pizza ovens.
-      `;
-    } else {
-      detailsText = `
-        This naturally-leavened sourdough formula utilizes <strong>${input.starterPct}% Starter</strong> at <strong>${input.starterHydration}% Hydration</strong>. 
-        Flour and water measurements have been accurately adjusted to subtract the flour (${CONV.format(starterFlour, unit)}) and water (${CONV.format(starterWater, unit)}) already present in the starter.
-        This ensures your true dough hydration remains exactly <strong>${input.hydration}%</strong>.
-      `;
-    }
+    const summaryText = `${input.pizzas} × ${CONV.format(input.ballWeight, unit)} dough balls. `;
+    const detailsText = `
+      This yeast recipe uses <strong>${input.hydration}% Hydration</strong>, which is highly responsive and versatile. 
+      ${input.oil > 0 ? `Olive oil (${input.oil}%) adds crumb tenderness and color. ` : ''}
+      ${input.sugar > 0 ? `Sugar (${input.sugar}%) speeds yeast activity and helps oven browning. ` : ''}
+      Suitable for cooking in a conventional oven at 500-550°F (using a pizza stone/steel) or outdoor pizza ovens.
+    `;
 
     DOM.doughSpecsSummary.innerHTML = summaryText;
     DOM.doughRatioDetail.innerHTML = detailsText;
@@ -507,73 +363,33 @@ document.addEventListener('DOMContentLoaded', () => {
   function generateInstructions(totalSauce, totalCheese, saucePerPizza, cheesePerPizza) {
     const input = state.inputs;
     const unit = state.unit;
-    const leavening = state.leavening;
 
-    let steps = [];
-
-    if (leavening === 'sourdough') {
-      steps = [
-        {
-          title: "Feed Sourdough Starter",
-          desc: `Feed your starter 4-8 hours before mixing until it doubles in volume. You will need ${CONV.format(input.pizzas * input.ballWeight * (input.starterPct/100) / (1 + input.starterHydration/100) * (1 + input.starterHydration/100), unit)} of active starter.`
-        },
-        {
-          title: "Autolyse Dough",
-          desc: "Combine all of the flour and water specified under 'Added Ingredients'. Mix until no dry flour remains. Cover and let rest for 30 to 45 minutes to build initial gluten structure."
-        },
-        {
-          title: "Add Starter and Knead",
-          desc: `Spread the sourdough starter across the dough. Knead for 3-5 minutes, then add the salt (${CONV.format(input.pizzas * input.ballWeight * (input.salt/100) / (1.0 + input.hydration/100 + input.salt/100 + input.oil/100 + input.sugar/100), unit)}) ${input.oil > 0 ? `and olive oil` : ''}. Knead until dough is smooth, elastic, and passes the windowpane test.`
-        },
-        {
-          title: "Bulk Fermentation with Stretch & Folds",
-          desc: "Let dough rise at room temperature (70-75°F / 21-24°C) for 4 to 6 hours. Perform 3 sets of stretch-and-folds spaced 30 minutes apart during the first 1.5 hours to strengthen the dough structure."
-        },
-        {
-          title: "Divide and Ball",
-          desc: `Divide the bulk dough into ${input.pizzas} equal portions of exactly ${CONV.format(input.ballWeight, unit)}. Shape each piece into a tight, smooth dough ball and place into individual lightly oiled containers.`
-        },
-        {
-          title: "Cold Proof (Fermentation)",
-          desc: "Place the containers in the refrigerator (approx. 39°F / 4°C) for 24 to 48 hours. This slow cold fermentation is where the deep complex pizza crust flavor and ease of stretching develops."
-        },
-        {
-          title: "Room Temperature Recovery & Prep",
-          desc: `Remove dough balls from the fridge 2.5 to 3 hours before baking. Let them warm up and relax. Meanwhile, preheat your oven to its absolute highest temperature (ideally with a pizza steel or stone inside). Prepare your ${totalSauce > 0 ? `${CONV.format(totalSauce, unit)} of sauce` : 'sauce'} and ${totalCheese > 0 ? `${CONV.format(totalCheese, unit)} of cheese` : 'cheese'}.`
-        },
-        {
-          title: "Stretch, Top and Bake",
-          desc: `Press a dough ball into flour, leaving a puffy rim (cornicione). Stretch to size. Top with ~${CONV.format(saucePerPizza, unit)} sauce, ~${CONV.format(cheesePerPizza, unit)} mozzarella, fresh basil, and a drizzle of oil. Bake until crust is charred and crispy!`
-        }
-      ];
-    } else {
-      steps = [
-        {
-          title: "Mix Ingredients (Autolyse)",
-          desc: "Combine the flour, water, yeast, and sugar (if any) in a mixing bowl. Stir until a shaggy dough forms, then let rest for 10-15 minutes to allow flour particles to absorb moisture."
-        },
-        {
-          title: "Knead and Add Salt & Oil",
-          desc: `Add salt (${CONV.format(input.pizzas * input.ballWeight * (input.salt/100) / (1 + input.hydration/100 + input.salt/100 + input.oil/100 + input.sugar/100 + input.yeastPct/100), unit)}) and oil. Knead by hand or stand mixer for 8-10 minutes until you get a smooth, supple dough ball.`
-        },
-        {
-          title: "Bulk Rise",
-          desc: "Place the dough in a lightly greased bowl, cover with a damp cloth, and let rise at room temperature for 1.5 to 2 hours, or until it has doubled in size."
-        },
-        {
-          title: "Divide and Ball",
-          desc: `Carefully divide the dough into ${input.pizzas} equal portions of ${CONV.format(input.ballWeight, unit)}. Ball them tightly by folding the edges under. Place on a tray or container, cover, and let proof at room temp for 2 hours (or cold ferment in the fridge for 24 hours for enhanced flavor).`
-        },
-        {
-          title: "Oven Preheating",
-          desc: `Preheat your home oven at 500-550°F (260-285°C) for at least 45 minutes with a baking steel or stone on the top rack. Get your toppings ready: portion ${CONV.format(saucePerPizza, unit)} sauce and ${CONV.format(cheesePerPizza, unit)} cheese per pizza.`
-        },
-        {
-          title: "Stretch and Cook",
-          desc: "Gently stretch the dough ball using your knuckles, avoiding pressing down the outer edge. Add sauce, cheese, and basil, then slide onto the baking steel. Bake for 5-8 minutes until golden brown and bubbling."
-        }
-      ];
-    }
+    const steps = [
+      {
+        title: "Mix Ingredients (Autolyse)",
+        desc: "Combine the flour, water, yeast, and sugar (if any) in a mixing bowl. Stir until a shaggy dough forms, then let rest for 10-15 minutes to allow flour particles to absorb moisture."
+      },
+      {
+        title: "Knead and Add Salt & Oil",
+        desc: `Add salt (${CONV.format(input.pizzas * input.ballWeight * (input.salt/100) / (1 + input.hydration/100 + input.salt/100 + input.oil/100 + input.sugar/100 + input.yeastPct/100), unit)}) and oil. Knead by hand or stand mixer for 8-10 minutes until you get a smooth, supple dough ball.`
+      },
+      {
+        title: "Bulk Rise",
+        desc: "Place the dough in a lightly greased bowl, cover with a damp cloth, and let rise at room temperature for 1.5 to 2 hours, or until it has doubled in size."
+      },
+      {
+        title: "Divide and Ball",
+        desc: `Carefully divide the dough into ${input.pizzas} equal portions of ${CONV.format(input.ballWeight, unit)}. Ball them tightly by folding the edges under. Place on a tray or container, cover, and let proof at room temp for 2 hours (or cold ferment in the fridge for 24 hours for enhanced flavor).`
+      },
+      {
+        title: "Oven Preheating",
+        desc: `Preheat your home oven at 500-550°F (260-285°C) for at least 45 minutes with a baking steel or stone on the top rack. Get your toppings ready: portion ${CONV.format(saucePerPizza, unit)} sauce and ${CONV.format(cheesePerPizza, unit)} cheese per pizza.`
+      },
+      {
+        title: "Stretch and Cook",
+        desc: "Gently stretch the dough ball using your knuckles, avoiding pressing down the outer edge. Add sauce, cheese, and basil, then slide onto the baking steel. Bake for 5-8 minutes until golden brown and bubbling."
+      }
+    ];
 
     // Render Steps
     DOM.instructionsContainer.innerHTML = steps.map((step, idx) => `
@@ -602,34 +418,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!preset) return;
 
     const currentPizzas = state.inputs.pizzas;
-
-    state.leavening = preset.leavening;
     
-    // Sync state inputs
+    // Reset inputs to default and sync preset values
+    state.inputs = { ...DEFAULT_INPUTS };
     Object.keys(preset).forEach(key => {
-      if (key !== 'leavening') {
-        state.inputs[key] = preset[key];
-      }
+      state.inputs[key] = preset[key];
     });
 
     state.inputs.pizzas = currentPizzas;
-
-    // Update yeast/sourdough UI panels and tab buttons
-    DOM.leaveningTabs.querySelectorAll('.tab-btn').forEach(btn => {
-      if (btn.dataset.leavening === state.leavening) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-
-    if (state.leavening === 'yeast') {
-      DOM.yeastInputs.style.display = 'block';
-      DOM.sourdoughInputs.style.display = 'none';
-    } else {
-      DOM.yeastInputs.style.display = 'none';
-      DOM.sourdoughInputs.style.display = 'block';
-    }
 
     // Update Preset Highlight in UI
     DOM.presetsContainer.querySelectorAll('.preset-card').forEach(card => {
@@ -684,16 +480,6 @@ document.addEventListener('DOMContentLoaded', () => {
       DOM.yeastPct.value = inputs.yeastPct;
       DOM.yeastPctNum.value = inputs.yeastPct;
     }
-
-    // Sourdough
-    if (inputs.starterPct) {
-      DOM.starterPct.value = inputs.starterPct;
-      DOM.starterPctNum.value = inputs.starterPct;
-    }
-    if (inputs.starterHydration) {
-      DOM.starterHydration.value = inputs.starterHydration;
-      DOM.starterHydrationNum.value = inputs.starterHydration;
-    }
   }
 
   // --- SAVE & LOAD CUSTOM RECIPES (LOCAL STORAGE) ---
@@ -720,7 +506,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const recipe = {
       id: Date.now(),
       name: nameInput,
-      leavening: state.leavening,
       inputs: { ...state.inputs }
     };
 
@@ -771,27 +556,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const currentPizzas = state.inputs.pizzas;
 
-    state.leavening = recipe.leavening;
-    state.inputs = { ...recipe.inputs };
+    state.inputs = { ...DEFAULT_INPUTS, ...recipe.inputs };
 
     state.inputs.pizzas = currentPizzas;
-
-    // Update leavening tabs
-    DOM.leaveningTabs.querySelectorAll('.tab-btn').forEach(btn => {
-      if (btn.dataset.leavening === state.leavening) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-
-    if (state.leavening === 'yeast') {
-      DOM.yeastInputs.style.display = 'block';
-      DOM.sourdoughInputs.style.display = 'none';
-    } else {
-      DOM.yeastInputs.style.display = 'none';
-      DOM.sourdoughInputs.style.display = 'block';
-    }
 
     // Deselect preset highlights
     DOM.presetsContainer.querySelectorAll('.preset-card').forEach(card => card.classList.remove('active'));
@@ -871,8 +638,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupDualInput(DOM.oil, DOM.oilNum, 'oil', parseFloat);
   setupDualInput(DOM.sugar, DOM.sugarNum, 'sugar', parseFloat);
   setupDualInput(DOM.yeastPct, DOM.yeastPctNum, 'yeastPct', parseFloat);
-  setupDualInput(DOM.starterPct, DOM.starterPctNum, 'starterPct', parseInt);
-  setupDualInput(DOM.starterHydration, DOM.starterHydrationNum, 'starterHydration', parseInt);
 
   // Yeast Type Selector with automatic conversion
   DOM.yeastType.addEventListener('change', (e) => {
@@ -915,29 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
     calculateRecipe();
   });
 
-  // Leavening Mode Tabs
-  DOM.leaveningTabs.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const mode = btn.dataset.leavening;
-      if (mode === state.leavening) return;
 
-      state.leavening = mode;
-
-      DOM.leaveningTabs.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      if (mode === 'yeast') {
-        DOM.yeastInputs.style.display = 'block';
-        DOM.sourdoughInputs.style.display = 'none';
-      } else {
-        DOM.yeastInputs.style.display = 'none';
-        DOM.sourdoughInputs.style.display = 'block';
-      }
-
-      DOM.presetsContainer.querySelectorAll('.preset-card').forEach(card => card.classList.remove('active'));
-      calculateRecipe();
-    });
-  });
 
   // Preset Selection Cards
   DOM.presetsContainer.querySelectorAll('.preset-card').forEach(card => {
