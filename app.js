@@ -874,9 +874,34 @@ document.addEventListener('DOMContentLoaded', () => {
   setupDualInput(DOM.starterPct, DOM.starterPctNum, 'starterPct', parseInt);
   setupDualInput(DOM.starterHydration, DOM.starterHydrationNum, 'starterHydration', parseInt);
 
-  // Yeast Type Selector
+  // Yeast Type Selector with automatic conversion
   DOM.yeastType.addEventListener('change', (e) => {
-    state.inputs.yeastType = e.target.value;
+    const oldType = state.inputs.yeastType;
+    const newType = e.target.value;
+    if (oldType === newType) return;
+
+    const conversionRatios = {
+      'instant': 1.0,
+      'active-dry': 1.25,
+      'fresh': 3.0
+    };
+
+    // Calculate converted percentage
+    const currentPct = state.inputs.yeastPct;
+    let newPct = currentPct * (conversionRatios[newType] / conversionRatios[oldType]);
+    
+    // Clamp between 0.01% and 5.0% and round to 2 decimal places
+    newPct = Math.max(0.01, Math.min(5.0, Math.round(newPct * 100) / 100));
+
+    state.inputs.yeastType = newType;
+    state.inputs.yeastPct = newPct;
+
+    console.log("Yeast type changed:", oldType, "->", newType, "New Pct:", newPct);
+
+    // Sync input controls
+    DOM.yeastPct.value = newPct;
+    DOM.yeastPctNum.value = newPct;
+
     calculateRecipe();
   });
 
