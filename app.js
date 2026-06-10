@@ -342,22 +342,22 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.toppingsTableBody.innerHTML = toppingsHtml;
 
     // --- GENERATE PREPARATION STEPS ---
-    generateInstructions(totalSauce, totalCheese, saucePerPizza, cheesePerPizza);
+    generateInstructions(flour, water, salt, yeast, oil, sugar, totalSauce, totalCheese, saucePerPizza, cheesePerPizza);
   }
 
   // --- DYNAMIC STEP-BY-STEP INSTRUCTIONS ---
-  function generateInstructions(totalSauce, totalCheese, saucePerPizza, cheesePerPizza) {
+  function generateInstructions(flour, water, salt, yeast, oil, sugar, totalSauce, totalCheese, saucePerPizza, cheesePerPizza) {
     const input = state.inputs;
     const unit = state.unit;
 
     const steps = [
       {
         title: "Mix Ingredients (Autolyse)",
-        desc: "Combine the flour, water, yeast, and sugar (if any) in a mixing bowl. Stir until a shaggy dough forms, then let rest for 10-15 minutes to allow flour particles to absorb moisture."
+        desc: `Combine the flour (${CONV.format(flour, unit)}), water (${CONV.format(water, unit)}), yeast (${CONV.formatYeast(yeast, unit)}), and sugar (${sugar > 0 ? CONV.format(sugar, unit) : 'if any'}) in a mixing bowl. Stir until a shaggy dough forms, then let rest for 10-15 minutes to allow flour particles to absorb moisture.`
       },
       {
         title: "Knead and Add Salt & Oil",
-        desc: `Add salt (${CONV.format(input.pizzas * input.ballWeight * (input.salt/100) / (1 + input.hydration/100 + input.salt/100 + input.oil/100 + input.sugar/100 + input.yeastPct/100), unit)}) and oil. Knead by hand or stand mixer for 8-10 minutes until you get a smooth, supple dough ball.`
+        desc: `Add salt (${CONV.format(salt, unit)})${oil > 0 ? ` and olive oil (${CONV.format(oil, unit)})` : ''}. Knead by hand or stand mixer for 8-10 minutes until you get a smooth, supple dough ball.`
       },
       {
         title: "Bulk Rise",
@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       {
         title: "Oven Preheating",
-        desc: `Preheat your home oven at 500-550°F (260-285°C) for at least 45 minutes with a baking steel or stone on the top rack. Get your toppings ready: portion ${CONV.format(saucePerPizza, unit)} sauce and ${CONV.format(cheesePerPizza, unit)} cheese per pizza.`
+        desc: `Preheat your home oven at 500-550°F (260-285°C) for at least 45 minutes with a baking steel or stone on the top rack. Get your toppings ready: portion ${saucePerPizza > 0 ? `${CONV.format(saucePerPizza, unit)} sauce` : 'no sauce'} and ${cheesePerPizza > 0 ? `${CONV.format(cheesePerPizza, unit)} cheese` : 'no cheese'} per pizza.`
       },
       {
         title: "Stretch and Cook",
